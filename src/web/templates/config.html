@@ -1,0 +1,56 @@
+{% extends "_base.html" %}
+
+{% block title %}Configuration - PlebLottery{% endblock %}
+
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Configuration</h2>
+<p class="mb-4">Below is the current configuration:</p>
+
+<!-- Configuration Table -->
+<div id="config-container" class="mt-4 bg-white p-4 rounded shadow" x-data="configTable()" x-init="fetchConfig()">
+    <table class="table-auto w-full border-collapse border border-gray-300">
+        <thead>
+            <tr class="bg-gray-100">
+                <th class="border border-gray-300 px-4 py-2">Key</th>
+                <th class="border border-gray-300 px-4 py-2">Value</th>
+                <th class="border border-gray-300 px-4 py-2">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <template x-for="(item, index) in config" :key="index">
+                <tr class="hover:bg-gray-100">
+                    <td class="border px-4 py-2 font-bold" x-text="item.key"></td>
+                    <td class="border px-4 py-2" x-text="item.value"></td>
+                    <td class="border px-4 py-2" :title="item.description" x-text="item.description"></td>
+                </tr>
+            </template>
+        </tbody>
+    </table>
+</div>
+<!-- Alpine.js Component -->
+<script>
+    function configTable() {
+        return {
+            config: [],
+            async fetchConfig() {
+                try {
+                    const response = await fetch('/api/config');
+                    const data = await response.json();
+
+                    // Transform the JSON into a format suitable for the table
+                    this.config = [
+                        { key: 'Listening Port', value: data.mining_server_config.listening_port, description: 'Port the server listens on' },
+                        { key: 'Public Key', value: data.mining_server_config.pub_key, description: 'Public key for the server' },
+                        { key: 'Certificate Validity', value: data.mining_server_config.cert_validity, description: 'Certificate validity in seconds' },
+                        { key: 'Inactivity Limit', value: data.mining_server_config.inactivity_limit, description: 'Inactivity timeout in seconds' },
+                        { key: 'Server Address', value: data.template_distribution_config.server_addr, description: 'Address of the template distribution server' },
+                        { key: 'Auth Public Key', value: data.template_distribution_config.auth_pk || 'None', description: 'Authentication public key (optional)' },
+                    ];
+                } catch (error) {
+                    console.error('Error fetching configuration:', error);
+                }
+            },
+        };
+    }
+</script>
+{% endblock %}
